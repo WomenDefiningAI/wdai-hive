@@ -1,0 +1,36 @@
+{
+  "name": "wdai-hive",
+  "version": "1.0.0",
+  "description": "WDAI Hive - AI Engagement & Play Tracker Slack Bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "npm run build:bot && npm run build:dashboard",
+    "build:bot": "echo 'Bot is ready to run'",
+    "build:dashboard": "cd dashboard && npm run build",
+    "install:all": "npm install && cd dashboard && npm install",
+    "docker:build": "docker build -t wdai-hive .",
+    "docker:run": "docker run -p 3000:3000 wdai-hive"
+  },
+  "keywords": ["slack", "bot", "ai", "engagement", "tracker"],
+  "author": "WDAI Team",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/bolt": "^3.17.1",
+    "@supabase/supabase-js": "^2.38.4",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3",
+    "winston": "^3.11.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
