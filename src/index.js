@@ -6,7 +6,6 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const { logger } = require('./utils/logger');
-const { setupDatabase } = require('./database/setup');
 const { setupScheduler } = require('./scheduler/weeklyCheckins');
 const { setupSlackHandlers } = require('./handlers/slackHandlers');
 const { setupDashboard } = require('./dashboard/server');
@@ -21,14 +20,14 @@ const app = new App({
 
 // Initialize Express server for dashboard
 const expressApp = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001; // Change from 3000 to 3001
 
 // Security middleware
 expressApp.use(helmet());
 expressApp.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://your-domain.com'] 
-    : ['http://localhost:3000', 'http://localhost:3001']
+    : ['http://localhost:3001'] // Remove port 3000, keep only 3001
 }));
 
 // Rate limiting
@@ -51,10 +50,6 @@ expressApp.get('/health', (req, res) => {
 
 async function startApp() {
   try {
-    // Setup database
-    logger.info('Setting up database...');
-    await setupDatabase();
-    
     // Setup Slack event handlers
     logger.info('Setting up Slack handlers...');
     await setupSlackHandlers(app);
