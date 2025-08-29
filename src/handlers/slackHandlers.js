@@ -266,6 +266,27 @@ function setupSlackHandlers(app) {
   });
 
   // Handle slash commands
+  app.command('/hive', async ({ ack, command, respond }) => {
+    await ack();
+    
+    try {
+      logger.info(`Slash command executed by ${command.user_id}`);
+      
+      await sendWeeklyCheckin(respond, command.user_id);
+      
+      await logAuditEvent('slash_command', null, command.user_id, { 
+        command: command.command,
+        text: command.text 
+      });
+      
+    } catch (error) {
+      logger.error('Error handling slash command:', error);
+      await respond({
+        text: "Sorry, I encountered an error. Please try again."
+      });
+    }
+  });
+
   app.command('/wdai-checkin', async ({ ack, command, respond }) => {
     await ack();
     
