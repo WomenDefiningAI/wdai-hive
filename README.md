@@ -56,6 +56,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 # App Configuration
 PORT=3000
 NODE_ENV=development
+
+# Channel Configuration
+TARGET_CHANNEL_ID=C088PDC4VRS
 ```
 
 ### 3. Database Setup
@@ -86,7 +89,10 @@ The admin dashboard is available at `http://localhost:3000` (or your deployed UR
 ## 🔧 Configuration
 
 ### Weekly Schedule
-The bot sends check-ins every Monday at 10:00 AM by default. This can be configured in `src/config/scheduler.js`.
+The bot sends check-ins every Monday at 10:00 AM UTC by default. This can be configured in `src/scheduler/weeklyCheckins.js`.
+
+### Channel Targeting
+Weekly check-ins are sent only to members of the channel specified by `TARGET_CHANNEL_ID`. This prevents spam and ensures targeted outreach to your specific community.
 
 ### Categories & Tools
 Predefined categories and tools can be customized in `src/config/categories.js`.

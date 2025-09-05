@@ -27,6 +27,7 @@ This guide will walk you through setting up the WDAI Hive Slack bot from scratch
    - `im:write` - Send direct messages
    - `users:read` - Read user information
    - `commands` - Add slash commands
+   - `channels:read` - Read channel membership (for targeted check-ins)
 
 ### 1.3 Install App to Workspace
 
@@ -110,6 +111,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-actual-service-role-key
 PORT=3000
 NODE_ENV=development
 LOG_LEVEL=info
+
+# Channel Configuration
+TARGET_CHANNEL_ID=C088PDC4VRS  # Only members of this channel will receive weekly check-ins
 ```
 
 ## Step 4: Installation & Setup

@@ -1,12 +1,6 @@
 const cron = require("node-cron");
 const { logger } = require("../utils/logger");
-const {
-  getUserBySlackId,
-  createUser,
-  getWeeklyResponses,
-  supabase,
-  logAuditEvent,
-} = require("../database/setup");
+const { logAuditEvent } = require("../database/setup");
 const { MESSAGE_TEMPLATES } = require("../config/categories");
 
 function setupScheduler(app) {
@@ -35,38 +29,33 @@ function setupScheduler(app) {
 
 async function sendWeeklyCheckins(app) {
   try {
-    // Get all active users who haven't opted out
-    const { data: users, error } = await supabase
-      .from("users")
-      .select("slack_user_id, slack_display_name")
-      .eq("is_active", true)
-      .eq("opt_out", false);
+    // Target channel ID for check-ins
+    const TARGET_CHANNEL_ID = process.env.TARGET_CHANNEL_ID || "C088PDC4VRS";
 
-    if (error) {
-      logger.error("Error fetching users for weekly check-ins:", error);
+    // Get channel members
+    const channelMembers = await getChannelMembers(app, TARGET_CHANNEL_ID);
+    if (!channelMembers || channelMembers.length === 0) {
+      logger.warn(`No members found in target channel ${TARGET_CHANNEL_ID}`);
       return;
     }
 
-    logger.info(`Sending weekly check-ins to ${users.length} users`);
+    logger.info(`Found ${channelMembers.length} members in target channel ${TARGET_CHANNEL_ID}`);
+
+    // Send check-ins to all channel members (no database filtering needed)
+    const targetUsers = channelMembers.map(userId => ({
+      slack_user_id: userId,
+      slack_display_name: null, // Will be resolved when sending
+    }));
+
+    logger.info(`Sending weekly check-ins to ${targetUsers.length} channel members`);
 
     const weekStartDate = getWeekStartDate();
     let successCount = 0;
     let errorCount = 0;
 
-    for (const user of users) {
+    for (const user of targetUsers) {
       try {
-        // Check if user has already responded this week
-        const existingResponse = await getWeeklyResponses({
-          slackUserId: user.slack_user_id,
-          weekStartDate: weekStartDate,
-        });
-
-        if (existingResponse && existingResponse.length > 0) {
-          logger.info(`User ${user.slack_user_id} already responded this week, skipping`);
-          continue;
-        }
-
-        // Send the weekly check-in
+        // Send the weekly check-in to channel member
         await sendWeeklyCheckinToUser(app, user.slack_user_id, user.slack_display_name);
         successCount++;
 
@@ -82,7 +71,8 @@ async function sendWeeklyCheckins(app) {
 
     // Log the weekly check-in event
     await logAuditEvent("weekly_checkin_batch", null, null, {
-      totalUsers: users.length,
+      targetChannelId: TARGET_CHANNEL_ID,
+      channelMembersCount: channelMembers.length,
       successCount,
       errorCount,
       weekStartDate,
@@ -167,61 +157,45 @@ async function triggerWeeklyCheckins(app, targetUsers = null) {
     // Send to specific users
     for (const userId of targetUsers) {
       try {
-        const user = await getUserBySlackId(userId);
-        if (user && !user.opt_out) {
-          await sendWeeklyCheckinToUser(app, userId, user.slack_display_name);
-        }
+        await sendWeeklyCheckinToUser(app, userId, null);
       } catch (error) {
         logger.error(`Error sending manual check-in to ${userId}:`, error);
       }
     }
   } else {
-    // Send to all active users
+    // Send to all channel members
     await sendWeeklyCheckins(app);
   }
 }
 
-// Reminder function for users who haven't responded
-async function sendReminders(app, daysAfterCheckin = 3) {
+// Reminder function for channel members
+async function sendReminders(app, _daysAfterCheckin = 3) {
   try {
-    const weekStartDate = getWeekStartDate();
+    const TARGET_CHANNEL_ID = process.env.TARGET_CHANNEL_ID || "C088PDC4VRS";
 
-    // Get users who haven't responded this week
-    const { data: users, error } = await supabase
-      .from("users")
-      .select("slack_user_id, slack_display_name")
-      .eq("is_active", true)
-      .eq("opt_out", false);
-
-    if (error) {
-      logger.error("Error fetching users for reminders:", error);
+    // Get channel members
+    const channelMembers = await getChannelMembers(app, TARGET_CHANNEL_ID);
+    if (!channelMembers || channelMembers.length === 0) {
+      logger.warn(`No members found in target channel ${TARGET_CHANNEL_ID} for reminders`);
       return;
     }
 
     let reminderCount = 0;
 
-    for (const user of users) {
+    for (const userId of channelMembers) {
       try {
-        // Check if user has already responded
-        const existingResponse = await getWeeklyResponses({
-          slackUserId: user.slack_user_id,
-          weekStartDate: weekStartDate,
-        });
+        // Send reminder to all channel members
+        await sendReminderMessage(app, userId, null);
+        reminderCount++;
 
-        if (!existingResponse || existingResponse.length === 0) {
-          // Send reminder
-          await sendReminderMessage(app, user.slack_user_id, user.slack_display_name);
-          reminderCount++;
-
-          // Add delay to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
-        logger.error(`Error sending reminder to ${user.slack_user_id}:`, error);
+        logger.error(`Error sending reminder to ${userId}:`, error);
       }
     }
 
-    logger.info(`Sent ${reminderCount} reminder messages`);
+    logger.info(`Sent ${reminderCount} reminder messages to channel members`);
   } catch (error) {
     logger.error("Error in reminder process:", error);
   }
@@ -284,6 +258,31 @@ function getWeekStartDate() {
   weekStart.setDate(now.getDate() - daysToSubtract);
   weekStart.setHours(0, 0, 0, 0);
   return weekStart.toISOString().split("T")[0];
+}
+
+// Get all members of a specific channel
+async function getChannelMembers(app, channelId) {
+  try {
+    logger.info(`Fetching members for channel ${channelId}`);
+
+    const result = await app.client.conversations.members({
+      channel: channelId,
+      limit: 1000, // Slack API limit per call
+    });
+
+    if (!result.ok) {
+      throw new Error(`Slack API error: ${result.error}`);
+    }
+
+    // Filter out bots (user IDs starting with 'B' are usually bots)
+    const humanMembers = result.members.filter(userId => !userId.startsWith("B"));
+
+    logger.info(`Found ${humanMembers.length} human members in channel ${channelId}`);
+    return humanMembers;
+  } catch (error) {
+    logger.error(`Error fetching channel members for ${channelId}:`, error);
+    throw error;
+  }
 }
 
 // Schedule reminders for Thursday (3 days after Monday check-in)
