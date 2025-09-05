@@ -1,8 +1,6 @@
 const cron = require("node-cron");
 const { logger } = require("../utils/logger");
-const {
-  logAuditEvent,
-} = require("../database/setup");
+const { logAuditEvent } = require("../database/setup");
 const { MESSAGE_TEMPLATES } = require("../config/categories");
 
 function setupScheduler(app) {
@@ -33,22 +31,22 @@ async function sendWeeklyCheckins(app) {
   try {
     // Target channel ID for check-ins
     const TARGET_CHANNEL_ID = process.env.TARGET_CHANNEL_ID || "C088PDC4VRS";
-    
+
     // Get channel members
     const channelMembers = await getChannelMembers(app, TARGET_CHANNEL_ID);
     if (!channelMembers || channelMembers.length === 0) {
       logger.warn(`No members found in target channel ${TARGET_CHANNEL_ID}`);
       return;
     }
-    
+
     logger.info(`Found ${channelMembers.length} members in target channel ${TARGET_CHANNEL_ID}`);
-    
+
     // Send check-ins to all channel members (no database filtering needed)
     const targetUsers = channelMembers.map(userId => ({
       slack_user_id: userId,
-      slack_display_name: null // Will be resolved when sending
+      slack_display_name: null, // Will be resolved when sending
     }));
-    
+
     logger.info(`Sending weekly check-ins to ${targetUsers.length} channel members`);
 
     const weekStartDate = getWeekStartDate();
@@ -174,7 +172,7 @@ async function triggerWeeklyCheckins(app, targetUsers = null) {
 async function sendReminders(app, _daysAfterCheckin = 3) {
   try {
     const TARGET_CHANNEL_ID = process.env.TARGET_CHANNEL_ID || "C088PDC4VRS";
-    
+
     // Get channel members
     const channelMembers = await getChannelMembers(app, TARGET_CHANNEL_ID);
     if (!channelMembers || channelMembers.length === 0) {
@@ -266,10 +264,10 @@ function getWeekStartDate() {
 async function getChannelMembers(app, channelId) {
   try {
     logger.info(`Fetching members for channel ${channelId}`);
-    
+
     const result = await app.client.conversations.members({
       channel: channelId,
-      limit: 1000 // Slack API limit per call
+      limit: 1000, // Slack API limit per call
     });
 
     if (!result.ok) {
@@ -277,11 +275,10 @@ async function getChannelMembers(app, channelId) {
     }
 
     // Filter out bots (user IDs starting with 'B' are usually bots)
-    const humanMembers = result.members.filter(userId => !userId.startsWith('B'));
-    
+    const humanMembers = result.members.filter(userId => !userId.startsWith("B"));
+
     logger.info(`Found ${humanMembers.length} human members in channel ${channelId}`);
     return humanMembers;
-    
   } catch (error) {
     logger.error(`Error fetching channel members for ${channelId}:`, error);
     throw error;
