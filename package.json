@@ -12,12 +12,12 @@
     "install:all": "npm install && cd dashboard && npm install",
     "docker:build": "docker build -t wdai-hive .",
     "docker:run": "docker run -p 3001:3001 wdai-hive",
-    "biome:lint": "biome lint src/ dashboard/src/",
-    "biome:lint:fix": "biome lint --write src/ dashboard/src/",
-    "biome:format": "biome format src/ dashboard/src/",
-    "biome:format:fix": "biome format --write src/ dashboard/src/",
-    "biome:check": "biome check src/ dashboard/src/",
-    "biome:check:fix": "biome check --write src/ dashboard/src/"
+    "biome:lint": "biome lint src/",
+    "biome:lint:fix": "biome lint --write src/",
+    "biome:format": "biome format src/",
+    "biome:format:fix": "biome format --write src/",
+    "biome:check": "biome check src/",
+    "biome:check:fix": "biome check --write src/"
   },
   "keywords": ["slack", "bot", "ai", "engagement", "tracker"],
   "author": "WDAI Team",
