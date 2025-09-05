@@ -11,7 +11,13 @@
     "build:dashboard": "cd dashboard && npm run build",
     "install:all": "npm install && cd dashboard && npm install",
     "docker:build": "docker build -t wdai-hive .",
-    "docker:run": "docker run -p 3001:3001 wdai-hive"
+    "docker:run": "docker run -p 3001:3001 wdai-hive",
+    "biome:lint": "biome lint src/",
+    "biome:lint:fix": "biome lint --write src/",
+    "biome:format": "biome format src/",
+    "biome:format:fix": "biome format --write src/",
+    "biome:check": "biome check src/",
+    "biome:check:fix": "biome check --write src/"
   },
   "keywords": ["slack", "bot", "ai", "engagement", "tracker"],
   "author": "WDAI Team",
@@ -28,7 +34,8 @@
     "express-rate-limit": "^7.1.5"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "@biomejs/biome": "^1.8.3"
   },
   "engines": {
     "node": ">=18.0.0"
