@@ -50,7 +50,7 @@ function setupSlackHandlers(app) {
       }
 
       // Handle conversation flow
-      const conversation = activeConversations.get(event.user) || { step: "start" };
+      const _conversation = activeConversations.get(event.user) || { step: "start" };
 
       if (event.text.toLowerCase().includes("help") || event.text.toLowerCase().includes("what")) {
         await sendHelpMessage(say);
@@ -217,10 +217,10 @@ function setupSlackHandlers(app) {
       logger.info(`User ${userId} clicked 'Next' after tool selection`);
 
       const conversation = activeConversations.get(userId);
-      if (conversation && conversation.data.tools && conversation.data.tools.length > 0) {
+      if (conversation?.data.tools && conversation.data.tools.length > 0) {
         // Capture the "other tool" input if provided
         const otherToolName = body.state?.values?.other_tool_input?.other_tool_name?.value;
-        if (otherToolName && otherToolName.trim()) {
+        if (otherToolName?.trim()) {
           conversation.data.custom_tools = conversation.data.custom_tools || [];
           conversation.data.custom_tools.push(otherToolName.trim());
           logger.info(`User ${userId} specified other tool: ${otherToolName.trim()}`);
@@ -339,7 +339,7 @@ function setupSlackHandlers(app) {
 }
 
 // Helper functions for sending messages
-async function sendWeeklyCheckin(say, userId) {
+async function sendWeeklyCheckin(say, _userId) {
   const message = {
     text: MESSAGE_TEMPLATES.weekly_checkin.description,
     blocks: [
@@ -513,7 +513,6 @@ async function sendToolSelection(client, userId) {
     throw error;
   }
 }
-
 
 async function sendCustomDetailsPrompt(client, userId) {
   try {
