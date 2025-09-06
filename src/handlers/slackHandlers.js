@@ -80,12 +80,12 @@ function setupSlackHandlers(app) {
       // Store conversation state
       activeConversations.set(userId, {
         step: "category_selection",
-        data: { 
+        data: {
           participated: true,
           slack_user_id: userId,
           week_start_date: getWeekStartDate(),
           categories: [],
-          tools: []
+          tools: [],
         },
       });
 
@@ -158,7 +158,7 @@ function setupSlackHandlers(app) {
         logger.warn(`No active conversation found for user ${userId} during category selection`);
         await client.chat.postMessage({
           channel: userId,
-          text: "Your session has expired. Please use /hive to start a new check-in."
+          text: "Your session has expired. Please use /hive to start a new check-in.",
         });
       }
     } catch (error) {
@@ -212,7 +212,7 @@ function setupSlackHandlers(app) {
         logger.warn(`No active conversation found for user ${userId} during tool selection`);
         await client.chat.postMessage({
           channel: userId,
-          text: "Your session has expired. Please use /hive to start a new check-in."
+          text: "Your session has expired. Please use /hive to start a new check-in.",
         });
       }
     } catch (error) {
@@ -328,7 +328,6 @@ function setupSlackHandlers(app) {
       });
     }
   });
-
 
   app.command("/wdai-help", async ({ ack, command, respond }) => {
     await ack();
