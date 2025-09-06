@@ -41,8 +41,8 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Create logs directory if it doesn't exist
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const logsDir = path.join(__dirname, "../../logs");
 if (!fs.existsSync(logsDir)) {

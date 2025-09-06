@@ -154,7 +154,7 @@ async function setupDatabase() {
     for (const indexSQL of INDEXES) {
       const { error } = await supabase.rpc("exec_sql", { sql: indexSQL });
       if (error) {
-        logger.warn(`Warning creating index:`, error);
+        logger.warn("Warning creating index:", error);
         // Don't throw error for indexes as they might already exist
       }
     }
