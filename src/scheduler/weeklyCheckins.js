@@ -219,7 +219,7 @@ async function sendReminderMessage(app, slackUserId, displayName) {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "Even if you didn't experiment with AI this week, we'd love to hear from you. You can respond with `/wdai-checkin` to get started!",
+          text: "Even if you didn't experiment with AI this week, we'd love to hear from you. You can respond with `/hive` to get started!",
         },
       },
       {

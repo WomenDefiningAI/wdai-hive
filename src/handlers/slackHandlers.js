@@ -80,7 +80,13 @@ function setupSlackHandlers(app) {
       // Store conversation state
       activeConversations.set(userId, {
         step: "category_selection",
-        data: { participated: true },
+        data: { 
+          participated: true,
+          slack_user_id: userId,
+          week_start_date: getWeekStartDate(),
+          categories: [],
+          tools: []
+        },
       });
 
       await sendCategorySelection(client, userId);
@@ -92,7 +98,7 @@ function setupSlackHandlers(app) {
       try {
         await client.chat.postMessage({
           channel: userId,
-          text: "Sorry, I encountered an error. Please try again or use /wdai-checkin to restart.",
+          text: "Sorry, I encountered an error. Please try again or use /hive to restart.",
         });
       } catch (msgError) {
         logger.error("Failed to send error message to user:", msgError);
@@ -152,7 +158,7 @@ function setupSlackHandlers(app) {
         logger.warn(`No active conversation found for user ${userId} during category selection`);
         await client.chat.postMessage({
           channel: userId,
-          text: "Your session has expired. Please use /wdai-checkin to start a new check-in.",
+          text: "Your session has expired. Please use /hive to start a new check-in."
         });
       }
     } catch (error) {
@@ -199,10 +205,16 @@ function setupSlackHandlers(app) {
         }
 
         activeConversations.set(userId, conversation);
-      }
 
-      // Update the tool selection message
-      await updateToolSelection(client, userId, conversation.data.tools);
+        // Update the tool selection message
+        await updateToolSelection(client, userId, conversation.data.tools);
+      } else {
+        logger.warn(`No active conversation found for user ${userId} during tool selection`);
+        await client.chat.postMessage({
+          channel: userId,
+          text: "Your session has expired. Please use /hive to start a new check-in."
+        });
+      }
     } catch (error) {
       logger.error("Error handling tool selection:", error);
     }
@@ -317,25 +329,6 @@ function setupSlackHandlers(app) {
     }
   });
 
-  app.command("/wdai-checkin", async ({ ack, command, respond }) => {
-    await ack();
-
-    try {
-      logger.info(`Slash command executed by ${command.user_id}`);
-
-      await sendWeeklyCheckin(respond, command.user_id);
-
-      await logAuditEvent("slash_command", null, command.user_id, {
-        command: command.command,
-        text: command.text,
-      });
-    } catch (error) {
-      logger.error("Error handling slash command:", error);
-      await respond({
-        text: "Sorry, I encountered an error. Please try again.",
-      });
-    }
-  });
 
   app.command("/wdai-help", async ({ ack, command, respond }) => {
     await ack();
@@ -605,7 +598,7 @@ async function sendHelpMessage(say) {
 I'm a bot that helps track AI experimentation and engagement in our community. I send weekly check-ins to see what AI tools you've been exploring.
 
 *Available Commands:*
-• \`/wdai-checkin\` - Manually trigger a weekly check-in
+• \`/hive\` - Manually trigger a weekly check-in
 • \`/wdai-help\` - Show this help message
 
 *How it works:*
