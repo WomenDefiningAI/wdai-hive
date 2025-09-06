@@ -164,6 +164,7 @@ function setupSlackHandlers(app) {
     } catch (error) {
       logger.error("Error handling category selection:", error);
       // Reset conversation state on error
+      const userId = body.user.id;
       const conversation = activeConversations.get(userId);
       if (conversation) {
         conversation.step = "category_selection";
@@ -180,34 +181,21 @@ function setupSlackHandlers(app) {
     }
   });
 
-  // Handle tool selection
-  app.action(/^tool_(.+)$/, async ({ ack, body, client }) => {
+  // Handle checkbox selection for tools
+  app.action("tools_checkboxes", async ({ ack, body, client }) => {
     await ack();
 
     try {
       const userId = body.user.id;
-      const toolId = body.actions[0].action_id.replace("tool_", "");
+      const selectedOptions = body.actions[0].selected_options || [];
+      const selectedTools = selectedOptions.map(option => option.value);
 
-      logger.info(`User ${userId} selected tool: ${toolId}`);
+      logger.info(`User ${userId} selected tools: ${selectedTools.join(", ")}`);
 
       const conversation = activeConversations.get(userId);
       if (conversation) {
-        if (!conversation.data.tools) {
-          conversation.data.tools = [];
-        }
-
-        // Toggle tool selection
-        const toolIndex = conversation.data.tools.indexOf(toolId);
-        if (toolIndex > -1) {
-          conversation.data.tools.splice(toolIndex, 1);
-        } else {
-          conversation.data.tools.push(toolId);
-        }
-
+        conversation.data.tools = selectedTools;
         activeConversations.set(userId, conversation);
-
-        // Update the tool selection message
-        await updateToolSelection(client, userId, conversation.data.tools);
       } else {
         logger.warn(`No active conversation found for user ${userId} during tool selection`);
         await client.chat.postMessage({
@@ -216,7 +204,7 @@ function setupSlackHandlers(app) {
         });
       }
     } catch (error) {
-      logger.error("Error handling tool selection:", error);
+      logger.error("Error handling tool checkbox selection:", error);
     }
   });
 
@@ -230,6 +218,14 @@ function setupSlackHandlers(app) {
 
       const conversation = activeConversations.get(userId);
       if (conversation && conversation.data.tools && conversation.data.tools.length > 0) {
+        // Capture the "other tool" input if provided
+        const otherToolName = body.state?.values?.other_tool_input?.other_tool_name?.value;
+        if (otherToolName && otherToolName.trim()) {
+          conversation.data.custom_tools = conversation.data.custom_tools || [];
+          conversation.data.custom_tools.push(otherToolName.trim());
+          logger.info(`User ${userId} specified other tool: ${otherToolName.trim()}`);
+        }
+
         conversation.step = "custom_details";
         activeConversations.set(userId, conversation);
 
@@ -439,13 +435,12 @@ async function sendCategorySelection(client, userId) {
 }
 
 async function sendToolSelection(client, userId) {
-  const toolBlocks = AI_TOOLS.map(tool => ({
-    type: "button",
+  const checkboxOptions = AI_TOOLS.map(tool => ({
     text: {
       type: "plain_text",
       text: `${tool.emoji} ${tool.name}`,
     },
-    action_id: `tool_${tool.id}`,
+    value: tool.id,
   }));
 
   try {
@@ -468,8 +463,33 @@ async function sendToolSelection(client, userId) {
           },
         },
         {
-          type: "actions",
-          elements: toolBlocks,
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "Select all tools you used:",
+          },
+          accessory: {
+            type: "checkboxes",
+            options: checkboxOptions,
+            action_id: "tools_checkboxes",
+          },
+        },
+        {
+          type: "input",
+          block_id: "other_tool_input",
+          optional: true,
+          element: {
+            type: "plain_text_input",
+            action_id: "other_tool_name",
+            placeholder: {
+              type: "plain_text",
+              text: "If you selected 'Other Tool', please specify which one...",
+            },
+          },
+          label: {
+            type: "plain_text",
+            text: "Other Tool Name (optional)",
+          },
         },
         {
           type: "actions",
@@ -494,11 +514,6 @@ async function sendToolSelection(client, userId) {
   }
 }
 
-async function updateToolSelection(client, userId, selectedTools) {
-  // This would update the existing message to show selected tools
-  // For now, we'll just acknowledge the selection
-  logger.info(`Updated tool selection for ${userId}: ${selectedTools.join(", ")}`);
-}
 
 async function sendCustomDetailsPrompt(client, userId) {
   try {
