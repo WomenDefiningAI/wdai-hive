@@ -188,8 +188,8 @@ const MESSAGE_TEMPLATES = {
     next_button: "Next ➡️"
   },
   custom_details: {
-    title: "Tell us more! (Optional)",
-    description: "Feel free to share more details about what you built, learned, or discovered. This helps inspire others in the community!",
+    title: "Tell us about your AI adventure!",
+    description: "What did you explore, build, or learn with AI this week? Share as much or as little as you'd like!",
     submit_button: "Submit 🚀",
     skip_button: "Skip"
   },
@@ -199,7 +199,7 @@ const MESSAGE_TEMPLATES = {
   },
   no_response: {
     title: "No worries! 😊",
-    description: "That's totally fine! We'll check in again next week. Feel free to reach out if you have any questions about AI tools or want to explore something specific."
+    description: "That's totally fine! We'll check in again next week. Feel free to reach out in #get-help if you have any questions about AI tools or want to explore something specific."
   }
 };
 
