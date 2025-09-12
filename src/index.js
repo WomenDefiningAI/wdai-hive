@@ -8,7 +8,6 @@ require("dotenv").config();
 const { logger } = require("./utils/logger");
 const { setupScheduler } = require("./scheduler/weeklyCheckins");
 const { setupSlackHandlers } = require("./handlers/slackHandlers");
-const { setupDashboard } = require("./dashboard/server");
 
 // Initialize Slack app
 const app = new App({
@@ -18,9 +17,9 @@ const app = new App({
   appToken: process.env.SLACK_APP_TOKEN,
 });
 
-// Initialize Express server for dashboard
+// Initialize Express server for health checks and basic API
 const expressApp = express();
-const PORT = process.env.PORT || 3001; // Change from 3000 to 3001
+const PORT = process.env.PORT || 3001;
 
 // Security middleware
 expressApp.use(helmet());
@@ -29,7 +28,7 @@ expressApp.use(
     origin:
       process.env.NODE_ENV === "production"
         ? ["https://your-domain.com"]
-        : ["http://localhost:3001"], // Remove port 3000, keep only 3001
+        : ["http://localhost:3001"],
   })
 );
 
@@ -61,18 +60,13 @@ async function startApp() {
     logger.info("Setting up weekly scheduler...");
     await setupScheduler(app);
 
-    // Setup dashboard
-    logger.info("Setting up dashboard...");
-    setupDashboard(expressApp);
-
     // Start Slack app
     await app.start();
     logger.info("⚡️ WDAI Hive Slack bot is running!");
 
-    // Start Express server
+    // Start Express server for health checks
     expressApp.listen(PORT, () => {
-      logger.info(`🚀 Dashboard server running on port ${PORT}`);
-      logger.info(`📊 Admin dashboard available at http://localhost:${PORT}`);
+      logger.info(`🚀 Health check server running on port ${PORT}`);
     });
   } catch (error) {
     logger.error("Failed to start WDAI Hive:", error);

@@ -6,10 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "build": "npm run build:bot && npm run build:dashboard",
-    "build:bot": "echo 'Bot is ready to run'",
-    "build:dashboard": "cd dashboard && npm run build",
-    "install:all": "npm install && cd dashboard && npm install",
+    "build": "echo 'Bot is ready to run'",
     "docker:build": "docker build -t wdai-hive .",
     "docker:run": "docker run -p 3001:3001 wdai-hive",
     "biome:lint": "biome lint src/",
