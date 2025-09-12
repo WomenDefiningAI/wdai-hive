@@ -4,15 +4,15 @@ const { logAuditEvent } = require("../database/setup");
 const { MESSAGE_TEMPLATES } = require("../config/categories");
 
 function setupScheduler(app) {
-  // Schedule weekly check-ins for every Monday at 10:00 AM
+  // Schedule weekly check-ins for every Sunday at 5:30 PM PST
   cron.schedule(
-    "0 10 * * 1",
+    "30 17 * * 0",
     async () => {
       logger.info("Starting weekly check-in process...");
       await sendWeeklyCheckins(app);
     },
     {
-      timezone: "UTC",
+      timezone: "America/Los_Angeles",
     }
   );
 
@@ -24,7 +24,7 @@ function setupScheduler(app) {
   //   timezone: "America/Los_Angeles"
   // });
 
-  logger.info("Weekly scheduler initialized - check-ins will be sent every Monday at 10:00 AM UTC");
+  logger.info("Weekly scheduler initialized - check-ins will be sent every Sunday at 5:30 PM PST");
 }
 
 async function sendWeeklyCheckins(app) {
