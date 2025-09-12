@@ -43,7 +43,7 @@ expressApp.use(limiter);
 expressApp.use(express.json());
 
 // Health check endpoint
-expressApp.get("/health", (req, res) => {
+expressApp.get("/health", (_req, res) => {
   res.json({
     status: "healthy",
     timestamp: new Date().toISOString(),

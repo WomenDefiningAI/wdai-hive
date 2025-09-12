@@ -1,4 +1,4 @@
-const path = require("path");
+const path = require("node:path");
 const express = require("express");
 const { logger } = require("../utils/logger");
 const { getWeeklyResponses, logAuditEvent, supabase } = require("../database/setup");
@@ -8,7 +8,7 @@ function setupDashboard(app) {
   app.use(express.static(path.join(__dirname, "../../dashboard/build")));
 
   // API Routes
-  app.get("/api/dashboard/stats", async (req, res) => {
+  app.get("/api/dashboard/stats", async (_req, res) => {
     try {
       // Get dashboard statistics
       const stats = await getDashboardStats();
@@ -50,7 +50,7 @@ function setupDashboard(app) {
     }
   });
 
-  app.get("/api/analytics/categories", async (req, res) => {
+  app.get("/api/analytics/categories", async (_req, res) => {
     try {
       const categoryStats = await getCategoryAnalytics();
       res.json(categoryStats);
@@ -60,7 +60,7 @@ function setupDashboard(app) {
     }
   });
 
-  app.get("/api/analytics/tools", async (req, res) => {
+  app.get("/api/analytics/tools", async (_req, res) => {
     try {
       const toolStats = await getToolAnalytics();
       res.json(toolStats);
@@ -70,7 +70,7 @@ function setupDashboard(app) {
     }
   });
 
-  app.get("/api/analytics/participation", async (req, res) => {
+  app.get("/api/analytics/participation", async (_req, res) => {
     try {
       const participationStats = await getParticipationAnalytics();
       res.json(participationStats);
@@ -103,7 +103,7 @@ function setupDashboard(app) {
   });
 
   // Catch all handler - serve React app for client-side routing
-  app.get("*", (req, res) => {
+  app.get("*", (_req, res) => {
     res.sendFile(path.join(__dirname, "../../dashboard/build/index.html"));
   });
 }
