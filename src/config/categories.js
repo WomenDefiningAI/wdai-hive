@@ -168,9 +168,8 @@ const MESSAGE_TEMPLATES = {
   },
   no_response: {
     title: "No worries! 😊",
-    description:
-      "That's totally fine! We'll check in again next week. Feel free to reach out if you have any questions about AI tools or want to explore something specific.",
-  },
+    description: "That's totally fine! We'll check in again next week. Feel free to reach out in #get-help if you have any questions about AI tools or want to explore something specific."
+  }
 };
 
 module.exports = {
