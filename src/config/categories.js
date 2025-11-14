@@ -146,7 +146,7 @@ const MESSAGE_TEMPLATES = {
   category_selection: {
     title: "What did you work on?",
     description:
-      "Great! Let's capture what you explored. What category best describes your AI activity?",
+      "Great! Let's capture what you explored. What categories describe your AI activity? (You can select multiple)",
     next_button: "Next ➡️",
   },
   tool_selection: {

@@ -157,7 +157,7 @@ docker-compose up -d
 ### Option B: Manual Deployment
 
 1. Set `NODE_ENV=production` in your `.env`
-2. Build the dashboard: `cd dashboard && npm run build`
+2. Set production environment variables
 3. Start the application: `npm start`
 
 ### Option C: Cloud Deployment

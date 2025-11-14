@@ -13,16 +13,13 @@ WDAI Hive is a Slack bot that encourages regular AI experimentation and tracks c
 - **Privacy Controls**: Opt-out options and data retention preferences
 
 ### For Admins
-- **Analytics Dashboard**: Visual insights by category, tool, and participation trends
-- **Search & Filter**: Find responses by date, category, tool, and user
 - **Data Export**: CSV exports with audit logging
-- **Knowledge Base**: Searchable archive of community AI projects
+- **API Access**: Direct database access for analytics
 
 ## 🏗️ Architecture
 
 - **Backend**: Node.js with Slack Bolt framework
 - **Database**: Supabase (PostgreSQL) with encryption
-- **Dashboard**: React with TypeScript
 - **Deployment**: Docker containerization
 
 ## 🚀 Quick Start
@@ -72,8 +69,6 @@ node scripts/setup-database.js
 # Start the bot
 npm run dev
 
-# Start the dashboard (in another terminal)
-cd dashboard && npm start
 ```
 
 ### 5. Deploy with Docker
@@ -82,9 +77,6 @@ npm run docker:build
 npm run docker:run
 ```
 
-## 📊 Dashboard Access
-
-The admin dashboard is available at `http://localhost:3000` (or your deployed URL). Authentication is handled through Slack Sign-In for admin users.
 
 ## 🔧 Configuration
 
