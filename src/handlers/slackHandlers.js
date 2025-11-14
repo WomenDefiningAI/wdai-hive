@@ -137,23 +137,21 @@ function setupSlackHandlers(app) {
     }
   });
 
-  // Handle category selection
-  app.action(/^category_(.+)$/, async ({ ack, body, client }) => {
+  // Handle checkbox selection for categories
+  app.action("categories_checkboxes", async ({ ack, body, client }) => {
     await ack();
 
     try {
       const userId = body.user.id;
-      const categoryId = body.actions[0].action_id.replace("category_", "");
+      const selectedOptions = body.actions[0].selected_options || [];
+      const selectedCategories = selectedOptions.map(option => option.value);
 
-      logger.info(`User ${userId} selected category: ${categoryId}`);
+      logger.info(`User ${userId} selected categories: ${selectedCategories.join(", ")}`);
 
       const conversation = activeConversations.get(userId);
       if (conversation) {
-        conversation.data.categories = [categoryId];
-        conversation.step = "tool_selection";
+        conversation.data.categories = selectedCategories;
         activeConversations.set(userId, conversation);
-
-        await sendToolSelection(client, userId);
       } else {
         logger.warn(`No active conversation found for user ${userId} during category selection`);
         await client.chat.postMessage({
@@ -162,9 +160,33 @@ function setupSlackHandlers(app) {
         });
       }
     } catch (error) {
-      logger.error("Error handling category selection:", error);
-      // Reset conversation state on error
+      logger.error("Error handling category checkbox selection:", error);
+    }
+  });
+
+  // Handle "Next" button after category selection
+  app.action("categories_next", async ({ ack, body, client }) => {
+    await ack();
+
+    try {
       const userId = body.user.id;
+      logger.info(`User ${userId} clicked 'Next' after category selection`);
+
+      const conversation = activeConversations.get(userId);
+      if (conversation?.data.categories && conversation.data.categories.length > 0) {
+        conversation.step = "tool_selection";
+        activeConversations.set(userId, conversation);
+
+        await sendToolSelection(client, userId);
+      } else {
+        await client.chat.postMessage({
+          channel: userId,
+          text: "Please select at least one category before continuing.",
+        });
+      }
+    } catch (error) {
+      logger.error("Error handling categories next:", error);
+      // Reset conversation state on error
       const conversation = activeConversations.get(userId);
       if (conversation) {
         conversation.step = "category_selection";
@@ -173,7 +195,7 @@ function setupSlackHandlers(app) {
       try {
         await client.chat.postMessage({
           channel: userId,
-          text: "Sorry, I encountered an error. Please try selecting a category again.",
+          text: "Sorry, I encountered an error. Please try clicking 'Next' again.",
         });
       } catch (msgError) {
         logger.error("Failed to send error message to user:", msgError);
@@ -393,13 +415,12 @@ async function sendWeeklyCheckin(say, _userId) {
 }
 
 async function sendCategorySelection(client, userId) {
-  const categoryBlocks = AI_CATEGORIES.map(category => ({
-    type: "button",
+  const checkboxOptions = AI_CATEGORIES.map(category => ({
     text: {
       type: "plain_text",
       text: `${category.emoji} ${category.name}`,
     },
-    action_id: `category_${category.id}`,
+    value: category.id,
   }));
 
   try {
@@ -422,8 +443,30 @@ async function sendCategorySelection(client, userId) {
           },
         },
         {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "Select all categories that apply:",
+          },
+          accessory: {
+            type: "checkboxes",
+            options: checkboxOptions,
+            action_id: "categories_checkboxes",
+          },
+        },
+        {
           type: "actions",
-          elements: categoryBlocks,
+          elements: [
+            {
+              type: "button",
+              text: {
+                type: "plain_text",
+                text: MESSAGE_TEMPLATES.category_selection.next_button,
+              },
+              style: "primary",
+              action_id: "categories_next",
+            },
+          ],
         },
       ],
     });

@@ -22,15 +22,12 @@ jobs:
         
     - name: Install root dependencies
       run: npm ci
-      
-    - name: Install dashboard dependencies
-      run: cd dashboard && npm ci --legacy-peer-deps
-      
+        
     - name: Check code formatting
       run: npm run biome:format
       
     - name: Build bot
-      run: npm run build:bot
+      run: npm run build
       
     # Skip dashboard build - incomplete React app missing public/index.html
     # - name: Build dashboard
@@ -56,9 +53,4 @@ jobs:
       run: npm audit --audit-level=high
       continue-on-error: true
       
-    - name: Install dashboard dependencies
-      run: cd dashboard && npm ci --legacy-peer-deps
-      
-    - name: Run dashboard security audit
-      run: cd dashboard && npm audit --audit-level=high
-      continue-on-error: true
+  
