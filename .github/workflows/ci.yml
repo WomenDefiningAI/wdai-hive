@@ -27,7 +27,7 @@ jobs:
       run: npm run biome:format
       
     - name: Build bot
-      run: npm run build:bot
+      run: npm run build
       
     # Skip dashboard build - incomplete React app missing public/index.html
     # - name: Build dashboard
