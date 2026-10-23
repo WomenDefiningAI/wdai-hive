@@ -25,7 +25,7 @@ WDAI Hive is a Slack bot that encourages regular AI experimentation and tracks c
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 24.22.1 (selected by `.nvmrc`)
 - Slack App credentials
 - Supabase project
 - Docker (optional)
@@ -34,8 +34,15 @@ WDAI Hive is a Slack bot that encourages regular AI experimentation and tracks c
 ```bash
 git clone <repository-url>
 cd wdai-hive
-npm run install:all
+nvm install
+nvm use
+node --version # Expected: v24.22.1
+npm ci
 ```
+
+These commands use nvm to install and activate the version in `.nvmrc`. If you
+use another Node version manager, select Node 24.22.1 and verify `node --version`
+before running `npm ci`. Run `nvm use` again when opening a new shell in this repo.
 
 ### 2. Environment Setup
 Create a `.env` file in the root directory:
