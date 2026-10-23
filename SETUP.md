@@ -4,7 +4,7 @@ This guide will walk you through setting up the WDAI Hive Slack bot from scratch
 
 ## Prerequisites
 
-- Node.js 18+ installed
+- Node.js 24.22.1 (selected by `.nvmrc`)
 - A Slack workspace where you have admin permissions
 - A Supabase account and project
 - Docker (optional, for containerized deployment)
@@ -121,9 +121,16 @@ TARGET_CHANNEL_ID=C088PDC4VRS  # Only members of this channel will receive weekl
 ### 4.1 Install Dependencies
 
 ```bash
-# Install all dependencies
-npm run install:all
+# From the repository root, select .nvmrc before installing dependencies
+nvm install
+nvm use
+node --version # Expected: v24.22.1
+npm ci
 ```
+
+These commands use nvm to install and activate the version in `.nvmrc`. If you
+use another Node version manager, select Node 24.22.1 and verify `node --version`
+before running `npm ci`. Run `nvm use` again when opening a new shell in this repo.
 
 ### 4.2 Setup Database
 
